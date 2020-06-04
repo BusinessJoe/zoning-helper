@@ -1,0 +1,9 @@
+.pdf
+.psd
+.png
+.jpg
+.*.swp
+info/
+venv/
+zoning/*
+!zoning/psd_reader.py
