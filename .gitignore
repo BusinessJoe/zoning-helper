@@ -3,11 +3,13 @@
 *.png
 *.jpg
 *.xcf
+*.tif
+*.tfw
+*.sh
+*.txt
 
 .*.swp
 
 info/
 venv/
 
-zoning/*
-!zoning/psd_reader.py
