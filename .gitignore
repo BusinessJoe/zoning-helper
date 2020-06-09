@@ -10,6 +10,8 @@
 
 .*.swp
 
+!assets/*
+
 info/
 venv/
 js_libs/
