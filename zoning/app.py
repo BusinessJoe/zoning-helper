@@ -1,7 +1,6 @@
 import json
 import glob 
 from flask import Flask, render_template
-from pprint import pprint
 
 app = Flask(__name__)
 
@@ -13,8 +12,8 @@ def load_maps():
         with open(filename) as f:
             geojson.append(json.load(f))
 
-    with open('templates/static.html', 'w') as f:
-        f.write(render_template('pymap.html', zones=geojson))
+    #with open('templates/static.html', 'w') as f:
+    #    f.write(render_template('pymap.html', zones=geojson))
     return render_template('pymap.html', zones=geojson)
 
 if __name__ == '__main__':
