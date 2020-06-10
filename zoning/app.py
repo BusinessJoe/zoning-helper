@@ -2,8 +2,10 @@ import json
 import glob 
 import os
 from flask import Flask, render_template
+from whitenoise import WhiteNoise
 
 app = Flask(__name__)
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='assets/')
 
 @app.route("/")
 def load_maps():
@@ -19,4 +21,5 @@ def load_maps():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    host = '0.0.0.0'
+    app.run(host=host, port=port)
