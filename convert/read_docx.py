@@ -1,15 +1,21 @@
 import docx
 import re
+import json
 
 class Bylaw:
     def __init__(self, id_='', context='', text=''):
-        self.id_ = id_
+        self.id_ = id_.rstrip().rstrip('.')
         self.context = context
         self.text = text
 
-    def save_as_html(self, filename):
+    def save_as_txt(self, filename):
         with open(filename, 'w') as f:
             f.write(self.text)
+
+    def save_as_json(self, filename):
+        to_dump = {'context': self.context, 'code': self.id_, 'text': self.text}
+        with open(filename, 'w') as f:
+            json.dump(to_dump, f)
 
 
 def get_bylaw_context(paragraph):
@@ -33,7 +39,7 @@ def get_bylaw_context(paragraph):
 def get_bylaws(filename):
     doc = docx.Document(filename)
 
-    bylaw_pattern = re.compile("^[0-9]+[A-Z]?\.")
+    bylaw_pattern = re.compile("^[0-9]+[A-Z]?\.\s+")
 
     header_count = 0
     read_bylaws = False
@@ -52,23 +58,31 @@ def get_bylaws(filename):
         if read_bylaws:
             if get_bylaw_context(para):
                 context = get_bylaw_context(para)
+                if context == 'EXCEPTIONS':
+                    read_bylaws = False
+                    break
 
             if context:
-                matches = bylaw_pattern.findall(para.text)
+                text_to_append = para.text
+                matches = bylaw_pattern.findall(text_to_append)
                 if matches:
+                    if matches[0] == '1.':
+                        print(para.text)
                     bylaw = Bylaw(id_=matches[0], context=context)
                     bylaws.append(bylaw)
 
+                    text_to_append = text_to_append.lstrip(matches[0])
+
                 if bylaw:
                     if not para.text.isspace() and not get_bylaw_context(para):
-                        bylaw.text += para.text + '\n'
+                        bylaw.text += text_to_append + '\n'
 
     return bylaws
 
 if __name__ == '__main__':
-    bylaws = get_bylaws('CCREST.docx')
+    bylaws = get_bylaws('convert/CCREST.docx')
 
     for bylaw in bylaws:
-        filename = f'html/{bylaw.id_}.html'
-        bylaw.save_as_html(filename)
+        filename = f'assets/bylaws/{bylaw.id_}.json'
+        bylaw.save_as_json(filename)
 

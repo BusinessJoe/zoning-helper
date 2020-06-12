@@ -23,10 +23,14 @@ def load_maps():
 def show_bylaws(zoning_code):
     category = zoning_code.split('-')[0]
     codes = zoning_code.split('-')[1:]
-    print(zoning_code)
-    image_links = [f"bylaw/{code}.png" for code in codes]
 
-    return render_template('bylaw_display.html', category=category, image_links=image_links)
+    bylaw_dicts = []
+    for code in codes:
+        with open(f'assets/bylaws/{code}.json') as f:
+            bylaw_json = json.load(f)
+            bylaw_dicts.append(bylaw_json)
+
+    return render_template('bylaw_display.html', category=category, bylaws=bylaw_dicts)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
