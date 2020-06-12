@@ -1,15 +1,15 @@
 *.pdf
 *.psd
 *.png
+*.tif
 *.jpg
 *.xcf
-*.tif
 *.tfw
 *.sh
 
 .*.swp
 
-!assets/*
+!assets/**
 
 info/
 venv/
