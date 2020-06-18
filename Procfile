@@ -1,1 +1,1 @@
-web: python zoning/app.py
+web: gunicorn zoning/zoningsite.wsgi
