@@ -26,9 +26,13 @@ def show_bylaws(zoning_code):
 
     bylaw_dicts = []
     for code in codes:
-        with open(f'assets/bylaws/{code}.json') as f:
-            bylaw_json = json.load(f)
-            bylaw_dicts.append(bylaw_json)
+        try:
+            with open(f'assets/bylaws/{code}.json') as f:
+                bylaw_json = json.load(f)
+                bylaw_dicts.append(bylaw_json)
+        except FileNotFoundError:
+            error_dict = {'context': 'error', 'code': '0', 'text': f"The file for bylaw {code} was not found."}
+            bylaw_dicts.append(error_dict)
 
     return render_template('bylaw_display.html', category=category, bylaws=bylaw_dicts)
 
