@@ -1,1 +1,1 @@
-web: bin/start-nginx bundle exec gunicorn --chdir zoningsite zoningsite.wsgi
+web: bin/start-nginx gunicorn --chdir zoningsite zoningsite.wsgi
