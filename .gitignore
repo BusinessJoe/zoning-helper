@@ -9,8 +9,9 @@
 
 .*.swp
 
-!assets/**
+!zoningsite/static/**
 
+logs/
 info/
 venv/
 js_libs/
