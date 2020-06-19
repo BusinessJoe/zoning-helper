@@ -1,1 +1,1 @@
-web: bin/start-nginx-solo gunicorn --chdir zoningsite zoningsite.wsgi
+web: bin/start-nginx gunicorn -c python:config/gunicorn.conf.py --chdir zoningsite zoningsite.wsgi
