@@ -12,9 +12,11 @@ $(document).ready(function() {
 
 function load_map(zones) {
     var mymap = L.map('mapid').setView([43.725, -79.232], 17);
+    var mapboxUrl = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}';
+    var attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
 
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+    L.tileLayer(mapboxUrl, {
+        attribution: attribution,
         maxZoom: 18,
         id: 'mapbox/streets-v11',
         tileSize: 512,
@@ -32,7 +34,11 @@ function load_map(zones) {
         console.log(feature);
     }
 
-    L.geoJSON(zones, {
+    L.geoJSON(specificationZones, {
+        onEachFeature: onEachFeature
+    }).addTo(mymap);
+
+    L.geoJSON(exceptionZones, {
         onEachFeature: onEachFeature
     }).addTo(mymap);
 };

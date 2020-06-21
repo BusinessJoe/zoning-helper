@@ -14,12 +14,19 @@ def map_view(request):
 
 def zones(request):
     print(request)
-    geojson_path = 'static/geojson/specifications/'
-    zones = []
+    spec_path = 'static/geojson/specifications/'
+    except_path= 'static/geojson/exceptions/'
     
-    for filename in os.listdir(geojson_path):
-        with open(os.path.join(geojson_path, filename)) as f:
-            zones.append(json.load(f))
+    spec_zones = []
+    except_zones = []
+    
+    for filename in os.listdir(spec_path):
+        with open(os.path.join(spec_path, filename)) as f:
+            spec_zones.append(json.load(f))
 
-    return JsonResponse(zones, safe=False)
+    for filename in os.listdir(except_zones):
+        with open(os.path.join(except_path, filename)) as f:
+            except_zones.append(json.load(f))
+
+    return JsonResponse({'specification': spec_zones, 'exceptions': except_zones}, safe=False)
 
