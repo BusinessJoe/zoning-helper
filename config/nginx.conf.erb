@@ -47,7 +47,7 @@ http {
     root /app/static; # path to your app
 
     location / {
-        try_files $uri @proxy_to_app
+        try_files $uri @proxy_to_app;
     }
 
     location @proxy_to_app {
