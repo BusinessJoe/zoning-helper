@@ -28,5 +28,5 @@ def zones(request):
         with open(os.path.join(except_path, filename)) as f:
             except_zones.append(json.load(f))
 
-    return JsonResponse({'specification': spec_zones, 'exceptions': except_zones}, safe=False)
+    return JsonResponse({'specifications': spec_zones, 'exceptions': except_zones}, safe=False)
 

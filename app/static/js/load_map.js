@@ -23,7 +23,6 @@ function load_map(specificationZones, exceptionZones) {
         accessToken: 'pk.eyJ1IjoiYnVzaW5lc3Nqb2UiLCJhIjoiY2tiMmFoeHc2MGMxcDJxcjFrNDVveHczYiJ9.quq-o1ig6VHAEPPzLbjkJQ'
     }).addTo(mymap);
 
-
     function onClick(e) {
         console.log(e);
     }
@@ -33,11 +32,23 @@ function load_map(specificationZones, exceptionZones) {
         console.log(feature);
     }
 
-    L.geoJSON(specificationZones, {
+    var specLayer = L.geoJSON(specificationZones, {
         onEachFeature: onEachFeature
-    }).addTo(mymap);
+    });
 
-    L.geoJSON(exceptionZones, {
-        onEachFeature: onEachFeature
-    }).addTo(mymap);
+    var exceptLayer = L.geoJSON(exceptionZones, {
+        onEachFeature: onEachFeature,
+        style: {
+            'color': '#FF4500'
+        }
+    });
+
+    var overlays = {
+        'Specifications': specLayer,
+        'Exceptions': exceptLayer
+    };
+
+    specLayer.addTo(mymap);
+    exceptLayer.addTo(mymap);
+    L.control.layers(null, overlays, {collapsed: false}).addTo(mymap);
 };
