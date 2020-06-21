@@ -4,9 +4,8 @@ $(document).ready(function() {
     $.get('zones', function(data, status) {
         console.log(status);
         console.log(data);
-        var specZones = data;
 
-        load_map(zones);
+        load_map(data['specifications'], data['exceptions']);
     });
 });
 
