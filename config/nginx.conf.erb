@@ -24,6 +24,17 @@ http {
   default_type application/octet-stream;
   sendfile on;
 
+    upstream app_server {
+        # fail_timeout=0 means we always retry an upstream even if it failed
+        # to return a good HTTP response
+
+        # for UNIX domain socket setups
+        server unix:/tmp/nginx.socket fail_timeout=0;
+
+        # for a TCP configuration
+        # server 192.168.0.7:8000 fail_timeout=0;
+    }
+
   # Must read the body in 5 seconds.
   client_body_timeout <%= ENV['NGINX_CLIENT_BODY_TIMEOUT'] || 5 %>;
 
@@ -33,7 +44,20 @@ http {
     keepalive_timeout 5;
     client_max_body_size <%= ENV['NGINX_CLIENT_MAX_BODY_SIZE'] || 1 %>M;
 
-    root /app; # path to your app
-    autoindex on;
+    root /app/static; # path to your app
+
+    location / {
+        try_files $uri @proxy_to_app
+    }
+
+    location @proxy_to_app {
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Host $http_host;
+      # we don't want nginx trying to do something clever with
+      # redirects, we set the Host: header above already.
+      proxy_redirect off;
+      proxy_pass http://app_server;
+    }
   }
 }
