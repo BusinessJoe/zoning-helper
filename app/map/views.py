@@ -24,7 +24,7 @@ def zones(request):
         with open(os.path.join(spec_path, filename)) as f:
             spec_zones.append(json.load(f))
 
-    for filename in os.listdir(except_zones):
+    for filename in os.listdir(except_path):
         with open(os.path.join(except_path, filename)) as f:
             except_zones.append(json.load(f))
 
