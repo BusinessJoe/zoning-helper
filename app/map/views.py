@@ -20,13 +20,19 @@ def zones(request):
     spec_zones = []
     except_zones = []
     
-    for filename in os.listdir(spec_path):
-        with open(os.path.join(spec_path, filename)) as f:
-            spec_zones.append(json.load(f))
+    try:
+        for filename in os.listdir(spec_path):
+            with open(os.path.join(spec_path, filename)) as f:
+                spec_zones.append(json.load(f))
+    except FileNotFoundError:
+        print(f"{spec_path} was not found")
 
-    for filename in os.listdir(except_path):
-        with open(os.path.join(except_path, filename)) as f:
-            except_zones.append(json.load(f))
+    try:
+        for filename in os.listdir(except_path):
+            with open(os.path.join(except_path, filename)) as f:
+                except_zones.append(json.load(f))
+    except FileNotFoundError:
+        print(f"{except_path} was not found")
 
     return JsonResponse({'specifications': spec_zones, 'exceptions': except_zones}, safe=False)
 
