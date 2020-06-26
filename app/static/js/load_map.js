@@ -1,5 +1,4 @@
 $(document).ready(function() {
-
     // send request to map/zones which returns all of the zone's geojson
     $.get('zones', function(data, status) {
         console.log(status);
@@ -44,11 +43,12 @@ function load_map(specificationZones, exceptionZones) {
     });
 
     var overlays = {
-        'Specifications': specLayer,
-        'Exceptions': exceptLayer
+        '<span class="layername">Specifications</span>': specLayer,
+        '<span class="layername">Exceptions</span>': exceptLayer
     };
 
-    specLayer.addTo(mymap);
+    // Add layers so that they're visible by default
     exceptLayer.addTo(mymap);
-    L.control.layers(null, overlays, {collapsed: false}).addTo(mymap);
+    specLayer.addTo(mymap);
+    L.control.layers(null, overlays, {collapsed: false, position: 'topleft'}).addTo(mymap);
 };
