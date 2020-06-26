@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import sys
 from read_dxf import DxfReader, Region
 
 
@@ -61,14 +62,16 @@ def transform_from_csv(csv_path):
 
 
 def compile_dxf(filename, save_path):
-    georef_csv_path = filename.rstrip('.dxf') + '.csv'
+    pre, ext = os.path.splitext(filename)
+    georef_csv_path = pre + '.csv'
 
     try:
         georef_transform = transform_from_csv(georef_csv_path)
     except FileNotFoundError:
         print("csv file was not found")
+        sys.exit(1)
 
-    reader = DxfReader(filename, line_layer='z_lukas')
+    reader = DxfReader(filename, line_layer='z_regions', text_layer='z_standards')
 
     # transform regions
     transformed_regions = []
@@ -85,4 +88,4 @@ def compile_dxf(filename, save_path):
         region.save_as_geojson(save_filename)
         
 if __name__ == '__main__':
-    compile_dxf('convert/CCREST_a_origin.dxf', 'app/static/geojson/specifications/')
+    compile_dxf('convert/ccrest_marked.dxf', 'app/static/geojson/specifications/')
