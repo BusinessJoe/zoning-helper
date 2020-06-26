@@ -58,7 +58,7 @@ class DxfReader:
 
         for region in self.regions:
             for text in dxf_text:
-                point = Point(text.dxf.align_point[:2])
+                point = Point(text.dxf.insert[:2])
                 if region.contains(point):
                     region.add_text(text)
 
