@@ -1,88 +1,111 @@
-import docx
-import re
+import os
 import json
+import docx
+import pyparsing
+import unidecode
 
-class Bylaw:
-    def __init__(self, id_='', context='', text=''):
-        self.id_ = id_.rstrip().rstrip('.')
-        self.context = context
-        self.text = text
-
-    def save_as_txt(self, filename):
-        with open(filename, 'w') as f:
-            f.write(self.text)
-
-    def save_as_json(self, filename):
-        to_dump = {'context': self.context, 'code': self.id_, 'text': self.text}
-        with open(filename, 'w') as f:
-            json.dump(to_dump, f)
+from parser import parser
 
 
-def get_bylaw_context(paragraph):
-    """
-    Returns paragraph text if the text is capitalized, bold and underlined. Returns an empty string otherwise or if
-    the paragraph is only whitespace.
-    """
-    if paragraph.text.isspace():
-        return ''
-
-    is_bold = all(run.bold for run in paragraph.runs if not run.text.isspace())
-    is_underline = all(run.underline for run in paragraph.runs if not run.text.isspace())
-    is_uppercase = all(run.text == run.text.upper() for run in paragraph.runs if not run.text.isspace())
-
-    if is_bold and is_underline and is_uppercase:
-        return paragraph.text
-    else:
-        return ''
+def is_blank(string):
+    return string.isspace() or len(string) == 0
 
 
-def get_bylaws(filename):
-    doc = docx.Document(filename)
+class Paragraph():
+    richtext_format = {
+        'bold': '<b>{text}</b>',
+        'underline': '<u>{text}</u>',
+        'italic': '<i>{text}</i>',
+        'superscript': '<sup>{text}</sup>',
+        'subscript': '<sub>{text}</sub>'
+    }
 
-    bylaw_pattern = re.compile("^[0-9]+[A-Z]?\.\s+")
+    def __init__(self, para):
+        self.paragraph = para
 
-    header_count = 0
-    read_bylaws = False
+    @property
+    def text(self):
+        return self.paragraph.text
 
-    context = None
-    bylaw = None
-    bylaws = []
-    for para in doc.paragraphs:
-        if not read_bylaws:
-            if 'PERFORMANCE STANDARD CHART - SCHEDULE "B"' in para.text:
-                header_count += 1
+    @property
+    def richtext(self):
+        all_text = ''
+        for r in self.paragraph.runs:
+            text = r.text
 
-            if header_count == 2:
-                read_bylaws = True
+            if is_blank(text):
+                continue
 
-        if read_bylaws:
-            if get_bylaw_context(para):
-                context = get_bylaw_context(para)
-                if context == 'EXCEPTIONS':
-                    read_bylaws = False
-                    break
+            if r.bold:
+                text = self.richtext_format['bold'].format(text=text)
+            if r.underline:
+                text = self.richtext_format['underline'].format(text=text)
+            if r.font.superscript:
+                text = self.richtext_format['superscript'].format(text=text)
+            if r.font.subscript:
+                text = self.richtext_format['subscript'].format(text=text)
 
-            if context:
-                text_to_append = para.text
-                matches = bylaw_pattern.findall(text_to_append)
-                if matches:
-                    if matches[0] == '1.':
-                        print(para.text)
-                    bylaw = Bylaw(id_=matches[0], context=context)
-                    bylaws.append(bylaw)
+            all_text += text
+        return all_text
 
-                    text_to_append = text_to_append.lstrip(matches[0])
+    @property
+    def is_context(self):
+        if self.text.isspace() or len(self.text) == 0:
+            return False
 
-                if bylaw:
-                    if not para.text.isspace() and not get_bylaw_context(para):
-                        bylaw.text += text_to_append + '\n'
+        para = self.paragraph
+        is_bold = all(run.bold for run in para.runs if not run.text.isspace())
+        is_underline = all(run.underline for run in para.runs if not run.text.isspace())
+        is_uppercase = all(run.text == run.text.upper() for run in para.runs if not run.text.isspace())
 
-    return bylaws
+        return is_bold and is_underline and is_uppercase
+
+
+class DocxBylawReader():
+    def __init__(self, filename):
+        self.doc = docx.Document(filename)
+        self.paragraphs = [Paragraph(para) for para in self.doc.paragraphs]
+
+    @property
+    def html_text(self):
+        all_text = '<br>\n'.join(para.richtext for para in self.paragraphs if not is_blank(para.richtext))
+        return unidecode.unidecode(all_text)
+
+    def get_parsed_results(self):
+        bylaws = []
+
+        results =  parser.searchString(self.html_text)
+
+        for context_section in results:
+            context_name = context_section['context']['name']
+
+            for bylaw in context_section['bylaws']:
+                bylaw_dict = {
+                    'context': context_name,
+                    'code': bylaw['code'][0],
+                    'text': bylaw['body']
+                }
+
+                bylaws.append(bylaw_dict)
+
+        return bylaws
+
+    def save_parsed_results(self, path):
+        for bylaw in self.get_parsed_results():
+            filename = os.path.join(path, f"{bylaw['code']}.json")
+            with open(filename, 'w') as f:
+                json.dump(bylaw, f)
+
 
 if __name__ == '__main__':
-    bylaws = get_bylaws('convert/CCREST.docx')
+    reader = DocxBylawReader('convert/CCREST.docx')
+    with open('convert/test.txt', 'w') as f:
+        f.write(reader.html_text)
+    reader.save_parsed_results('app/static/bylaws')
 
-    for bylaw in bylaws:
-        filename = f'assets/bylaws/{bylaw.id_}.json'
-        bylaw.save_as_json(filename)
+    #bylaws = get_bylaws('convert/CCREST.docx')
+
+    #for bylaw in bylaws:
+    #    filename = f'assets/bylaws/{bylaw.id_}.json'
+    #    bylaw.save_as_json(filename)
 

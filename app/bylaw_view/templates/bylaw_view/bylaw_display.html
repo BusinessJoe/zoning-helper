@@ -37,7 +37,7 @@
         <div class="bylaw">
             <div class="context">{{ bylaw.context }}</div>
             <span class="code">{{ bylaw.code }}.</span>
-            <span class="body">{{ bylaw.text }} </span>
+            <span class="body">{{ bylaw.text | safe }} </span>
         </div>
     {% endfor %}
 
