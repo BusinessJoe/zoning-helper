@@ -19,12 +19,19 @@
         border-top: 2px solid black;
     }
 
+    .context {
+        font-size: 1.5em;
+    }
+
     .code {
-        font-size: 1.8em;
+        float: left;
+        margin-right: 0.5em;
+        font-size: 2.0em;
     }
 
     .body {
-        font-size: 1.8em;
+        float: left;
+        font-size: 2.0em;
     }
 
 </style>
@@ -34,11 +41,13 @@
     <div class="category">{{ category }}</div>
 
     {% for bylaw in bylaws %}
-        <div class="bylaw">
-            <div class="context">{{ bylaw.context }}</div>
-            <span class="code">{{ bylaw.code }}.</span>
-            <span class="body">{{ bylaw.text | safe }} </span>
+    <div class="bylaw">
+        <div class="context">{{ bylaw.context }}</div>
+        <div style="display: flex;">
+            <div class="code">{{ bylaw.code }}.</div>
+            <div class="body">{{ bylaw.text | safe }} </div>
         </div>
+    </div>
     {% endfor %}
 
 </body>
