@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import sys
-from read_dxf import DxfReader, Region
 
 
 def add_column(array, val=1):
@@ -30,7 +29,7 @@ def from_unit_square(bottom_left, top_left, bottom_right):
     A = np.eye(3)
     A[:2, 0] = x_vector
     A[:2, 1] = y_vector
-    
+
     # Offset is bottom_left
     A[:2, 2] = bottom_left
 
@@ -42,8 +41,9 @@ def solve_affine(source_coords, dest_coords, angle=0):
     M = from_unit_square(*dest_coords)
 
     A = M.dot(np.linalg.pinv(D))
-    
+
     return A.T
+
 
 def transform_from_csv(csv_path):
     """
@@ -57,35 +57,6 @@ def transform_from_csv(csv_path):
     source_coords = csv[:, :2]
     dest_coords = csv[:, 2:4]
 
-    Aff, D, M = solve_affine(source_coords[:3], dest_coords[:3])
-    return Aff, D, M
+    Aff = solve_affine(source_coords[:3], dest_coords[:3])
+    return Aff
 
-
-def compile_dxf(filename, save_path):
-    pre, ext = os.path.splitext(filename)
-    georef_csv_path = pre + '.csv'
-
-    try:
-        georef_transform = transform_from_csv(georef_csv_path)
-    except FileNotFoundError:
-        print("csv file was not found")
-        sys.exit(1)
-
-    reader = DxfReader(filename, line_layer='z_regions', text_layer='z_standards')
-
-    # transform regions
-    transformed_regions = []
-    for region in reader.regions:
-        points = np.array(region.points)
-        points = add_column(points).dot(georef_transform)
-        region.points = points.tolist()
-
-        transformed_regions.append(region)
-    
-    # save regions
-    for idx, region in enumerate(transformed_regions):
-        save_filename = os.path.join(save_path, f'{idx}.json')
-        region.save_as_geojson(save_filename)
-        
-if __name__ == '__main__':
-    compile_dxf('convert/ccrest_marked.dxf', 'app/static/geojson/specifications/')

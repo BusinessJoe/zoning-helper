@@ -1,7 +1,11 @@
-import ezdxf
+import os
 import json
+import ezdxf
+import numpy as np
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
+
+from georeference import transform_from_csv, add_column
 
 
 class Region:
@@ -47,25 +51,51 @@ class Region:
 
 
 class DxfReader:
-    def __init__(self, filename, line_layer='ZONING_ZONES', text_layer='ZONING_STANDARDS'):
+    def __init__(self, filename, spec_line_layer, spec_text_layer, exc_line_layer, exc_text_layer):
         self.doc = ezdxf.readfile(filename)
-        msp = self.doc.modelspace()
 
+        self.spec_regions = self._get_regions(spec_line_layer, spec_text_layer)
+        self.exc_regions = self._get_regions(exc_line_layer, exc_text_layer)
+
+        pre, ext = os.path.splitext(filename)
+        csv_path = pre + '.csv'
+        self.georef_transform = transform_from_csv(csv_path)
+
+        self._transform_regions(self.spec_regions)
+        self._transform_regions(self.exc_regions)
+
+    def _get_regions(self, line_layer, text_layer):
+        msp = self.doc.modelspace()
         polylines = msp.query(f'LWPOLYLINE[layer=="{line_layer}"]')
         dxf_text = msp.query(f'TEXT[layer=="{text_layer}"]')
-        
-        self.regions = [Region(points=line.vertices()) for line in polylines]
 
-        for region in self.regions:
+        regions = [Region(points=line.vertices()) for line in polylines]
+
+        for region in regions:
             for text in dxf_text:
                 point = Point(text.dxf.insert[:2])
                 if region.contains(point):
                     region.add_text(text)
 
+        return regions
+
+    def _transform_regions(self, regions):
+        for region in regions:
+            points = np.array(region.points)
+            transformed_points = add_column(points).dot(self.georef_transform)
+            region.points = transformed_points.tolist()
+
+    def save_specifications(self, path):
+        for idx, region in enumerate(self.spec_regions):
+            filename = os.path.join(path, f'{idx}.json')
+            region.save_as_geojson(filename)
+
+    def save_exceptions(self, path):
+        for idx, region in enumerate(self.exc_regions):
+            filename = os.path.join(path, f'{idx}.json')
+            region.save_as_geojson(filename)
 
 if __name__ == '__main__':
-    reader = DxfReader("convert/CCREST_a_origin.dxf", line_layer='z_lukas')
-
-    for idx, region in enumerate(reader.regions):
-        path = f"app/static/geojson/specifications/{idx}.json"
-        region.save_as_geojson(path)
+    reader = DxfReader("convert/ccrest_marked.dxf", 'z_regions', 'z_standards', 'z_regions', 'z_standards')
+    reader.save_specifications('app/static/geojson/specifications')
+    reader.save_exceptions('app/static/geojson/exceptions')
