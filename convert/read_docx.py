@@ -4,7 +4,7 @@ import docx
 import pyparsing
 import unidecode
 
-from parser import parser
+import parsedocx
 
 
 def is_blank(string):
@@ -71,41 +71,22 @@ class DocxBylawReader():
         all_text = '<br>\n'.join(para.richtext for para in self.paragraphs if not is_blank(para.richtext))
         return unidecode.unidecode(all_text)
 
-    def get_parsed_results(self):
-        bylaws = []
-
-        results =  parser.searchString(self.html_text)
-
-        for context_section in results:
-            context_name = context_section['context']['name']
-
-            for bylaw in context_section['bylaws']:
-                bylaw_dict = {
-                    'context': context_name,
-                    'code': bylaw['code'][0],
-                    'text': bylaw['body']
-                }
-
-                bylaws.append(bylaw_dict)
-
-        return bylaws
-
-    def save_parsed_results(self, path):
-        for bylaw in self.get_parsed_results():
-            filename = os.path.join(path, f"{bylaw['code']}.json")
+    def save_specifications(self, path):
+        for spec in parsedocx.parse_specifications(self.html_text):
+            filename = os.path.join(path, f"{spec['code']}.json")
             with open(filename, 'w') as f:
-                json.dump(bylaw, f)
+                json.dump(spec, f)
+
+    def save_exceptions(self, path):
+        for exception in parsedocx.parse_exceptions(self.html_text):
+            filename = os.path.join(path, f"{exception['code']}.json")
+            with open(filename, 'w') as f:
+                json.dump(exception, f)
+
 
 
 if __name__ == '__main__':
     reader = DocxBylawReader('convert/CCREST.docx')
-    with open('convert/test.txt', 'w') as f:
-        f.write(reader.html_text)
-    reader.save_parsed_results('app/static/bylaws')
-
-    #bylaws = get_bylaws('convert/CCREST.docx')
-
-    #for bylaw in bylaws:
-    #    filename = f'assets/bylaws/{bylaw.id_}.json'
-    #    bylaw.save_as_json(filename)
+    reader.save_specifications('app/static/bylaws/specifications')
+    reader.save_exceptions('app/static/bylaws/exceptions')
 

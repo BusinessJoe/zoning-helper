@@ -9,6 +9,7 @@ __pycache__/
 *.tfw
 *.sh
 
+.~lock.*
 .*.swp
 
 !zoningsite/static/**

@@ -26,17 +26,22 @@ function load_map(specificationZones, exceptionZones) {
         console.log(e);
     }
 
-    function onEachFeature(feature, layer) {
-        layer.bindPopup('<h1><a href="/bylaw/' + feature.zone_spec + '" target="_blank">' + feature.zone_spec + '</a></h1>');
+    function bindSpecification(feature, layer) {
+        layer.bindPopup(`<h1><a href="/bylaw/specifications/${feature.zone_spec}" target="_blank">${feature.zone_spec}</a></h1>`);
+        console.log(feature);
+    }
+
+    function bindException(feature, layer) {
+        layer.bindPopup(`<h1><a href="/bylaw/exceptions/${feature.zone_spec}" target="_blank">${feature.zone_spec}</a></h1>`);
         console.log(feature);
     }
 
     var specLayer = L.geoJSON(specificationZones, {
-        onEachFeature: onEachFeature
+        onEachFeature: bindSpecification
     });
 
     var exceptLayer = L.geoJSON(exceptionZones, {
-        onEachFeature: onEachFeature,
+        onEachFeature: bindException,
         style: {
             'color': '#FF4500'
         }
