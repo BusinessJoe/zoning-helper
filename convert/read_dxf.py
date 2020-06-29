@@ -96,6 +96,6 @@ class DxfReader:
             region.save_as_geojson(filename)
 
 if __name__ == '__main__':
-    reader = DxfReader("convert/ccrest_marked.dxf", 'z_regions', 'z_standards', 'z_regions', 'z_standards')
+    reader = DxfReader("convert/ccrest_marked.dxf", 'z_regions', 'z_standards', 'exc_regions', 'exc_standards')
     reader.save_specifications('app/static/geojson/specifications')
     reader.save_exceptions('app/static/geojson/exceptions')
