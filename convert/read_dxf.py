@@ -1,11 +1,21 @@
 import os
 import json
+import glob
 import ezdxf
 import numpy as np
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
 from georeference import transform_from_csv, add_column
+
+
+def remove_json_files(path):
+    """
+    Removes all the files with a .json extension in the target directory
+    """
+    files = glob.glob(os.path.join(path, '*.json'))
+    for f in files:
+        os.remove(f)
 
 
 class Region:
@@ -86,11 +96,15 @@ class DxfReader:
             region.points = transformed_points.tolist()
 
     def save_specifications(self, path):
+        remove_json_files(path)
+        print(f'Saving {len(self.spec_regions)} spec regions.')
         for idx, region in enumerate(self.spec_regions):
             filename = os.path.join(path, f'{idx}.json')
             region.save_as_geojson(filename)
 
     def save_exceptions(self, path):
+        remove_json_files(path)
+        print(f'Saving {len(self.exc_regions)} exc regions.')
         for idx, region in enumerate(self.exc_regions):
             filename = os.path.join(path, f'{idx}.json')
             region.save_as_geojson(filename)
