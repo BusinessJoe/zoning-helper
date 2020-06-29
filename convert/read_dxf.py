@@ -19,11 +19,8 @@ def remove_json_files(path):
 
 
 class Region:
-    def __init__(self, points=None, text_segments=None):
-        if points is None:
-            points = []
-        self._points = list(points)
-        self.polygon = Polygon(self._points)
+    def __init__(self, points, text_segments=None):
+        self._polygon = Polygon(points)
 
         if text_segments is None:
             text_segments = []
@@ -37,26 +34,32 @@ class Region:
         self.text_segments.append(dxf_text)
 
     @property
-    def points(self):
-        return self._points
+    def exterior(self):
+        return list(self._polygon.exterior.coords)
 
-    @points.setter
-    def points(self, points):
-        self._points = list(points)
-        self.polygon = Polygon(self._points)
+    @property
+    def interiors(self):
+        return [list(i.coords) for i in self._polygon.interiors]
 
-    def contains(self, point):
-        return self.polygon.contains(point)
+    @property
+    def polygon(self):
+        return self._polygon
+
+    @polygon.setter
+    def polygon(self, polygon):
+        self._polygon = polygon
 
     def save_as_geojson(self, filename):
-        points = self.points.copy()
-        points.append(self.points[0])
-        points = [(p[1], p[0]) for p in points]
+        # reverse along coordinate axis because geojson uses longitude-latitude ordering
+        exterior = [(p[1], p[0]) for p in self.exterior]
+        interiors = [[(p[1], p[0]) for p in i] for i in self.interiors]
+
+        coordinates = [exterior] + interiors
 
         with open(filename, 'w') as json_file:
             data = {"zone_spec": self.text,
                     "type": "Polygon",
-                    "coordinates": [points]}
+                    "coordinates": coordinates}
             json.dump(data, json_file)
 
 
@@ -74,6 +77,9 @@ class DxfReader:
         self._transform_regions(self.spec_regions)
         self._transform_regions(self.exc_regions)
 
+    def _perforate(self, base, cutout):
+        return Polygon(base.exterior, list(base.interiors) + [cutout.exterior])
+
     def _get_regions(self, line_layer, text_layer):
         msp = self.doc.modelspace()
         polylines = msp.query(f'LWPOLYLINE[layer=="{line_layer}"]')
@@ -81,19 +87,31 @@ class DxfReader:
 
         regions = [Region(points=line.vertices()) for line in polylines]
 
+        for base in regions:
+            for cutout in regions:
+                if base is not cutout and base.polygon.contains(cutout.polygon):
+                    polygon = self._perforate(base.polygon, cutout.polygon)
+                    base.polygon = polygon
+
         for region in regions:
             for text in dxf_text:
+                # text.dxf.insert is the bottom left point of a text object
                 point = Point(text.dxf.insert[:2])
-                if region.contains(point):
+                if region.polygon.contains(point):
                     region.add_text(text)
 
         return regions
 
+    def _transform_points(self, points):
+        points = np.array(points)
+        transformed_points = add_column(points).dot(self.georef_transform)[:, :2]
+        return transformed_points.tolist()
+
     def _transform_regions(self, regions):
-        for region in regions:
-            points = np.array(region.points)
-            transformed_points = add_column(points).dot(self.georef_transform)
-            region.points = transformed_points.tolist()
+        for r in regions:
+            exterior = self._transform_points(r.exterior)
+            interiors = [self._transform_points(i) for i in r.interiors]
+            r.polygon = Polygon(exterior, interiors)
 
     def save_specifications(self, path):
         remove_json_files(path)
