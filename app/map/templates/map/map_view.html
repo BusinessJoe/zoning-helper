@@ -13,19 +13,18 @@
         integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
         crossorigin=""></script>
 
-    <!-- Link to jquery -->
+    <!-- jquery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-    <!-- Load map -->
-    <script src="../static/js/load_map.js"></script>
+    <!-- leaflet-pip -->
+    <script src='https://unpkg.com/@mapbox/leaflet-pip@latest/leaflet-pip.js'></script>
 
     <style>
-        #mapid {
+        #map {
             position: absolute;
             top: 0;
-            bottom: 0;
             left: 0;
-            right: 0;
+            height: 100%;
+            width: 100%;
         }
 
         .layername {
@@ -36,8 +35,10 @@
 
 </head>
 <body>
+    <!-- Load map -->
+    <script src="../static/js/load_map.js"></script>
     
-    <div id="mapid"></div>
+    <div id="map"></div>
 
 </body>
 </html>

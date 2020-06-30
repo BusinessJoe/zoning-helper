@@ -9,7 +9,7 @@ $(document).ready(function() {
 });
 
 function load_map(specificationZones, exceptionZones) {
-    var mymap = L.map('mapid').setView([43.725, -79.232], 17);
+    var mymap = L.map('map').setView([43.725, -79.232], 17);
     var mapboxUrl = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}';
     var attribution = 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
 
@@ -25,26 +25,51 @@ function load_map(specificationZones, exceptionZones) {
         accessToken: 'pk.eyJ1IjoiYnVzaW5lc3Nqb2UiLCJhIjoiY2tiMmFoeHc2MGMxcDJxcjFrNDVveHczYiJ9.quq-o1ig6VHAEPPzLbjkJQ'
     }).addTo(mymap);
 
-    function onClick(e) {
-        console.log(e);
+    var popup = L.popup();
+
+    function zoneFromPoint(point, layer) {
+        return leafletPip.pointInLayer(point, layer, true)
     }
 
-    function bindSpecification(feature, layer) {
-        layer.bindPopup(`<h1><a href="/bylaw/specifications/${feature.zone_spec}" target="_blank">${feature.zone_spec}</a></h1>`);
-        console.log(feature);
+    function getZonePopupHtml(e, layerType) {
+        if (layerType == 'spec') {
+            path = 'specifications';
+            layer = specLayer;
+        }
+        else if (layerType == 'exc') {
+            path = 'exceptions';
+            layer = excLayer;
+        }
+
+        var match = zoneFromPoint(e.latlng, layer);
+        if (match.length != 0) {
+            var standard = match[0].feature.geometry.zone_spec;
+            var html = `<a href="/bylaw/${path}/${standard}" target="_blank">${standard}</a>`;
+            return html;
+        }
+        return ''
     }
 
-    function bindException(feature, layer) {
-        layer.bindPopup(`<h1><a href="/bylaw/exceptions/${feature.zone_spec}" target="_blank">${feature.zone_spec}</a></h1>`);
-        console.log(feature);
+    function onMapClick(e) {
+        var specHtml = getZonePopupHtml(e, "spec");
+        var excHtml = getZonePopupHtml(e, "exc");
+
+        var html = `<h3>Spec: ${specHtml}<br>Exc: ${excHtml}</h3>`;
+
+        popup
+            .setLatLng(e.latlng)
+            .setContent(html)
+            .openOn(mymap);
     }
+
+    mymap.on('click', onMapClick);
+
 
     var specLayer = L.geoJSON(specificationZones, {
-        onEachFeature: bindSpecification
+    
     });
 
-    var exceptLayer = L.geoJSON(exceptionZones, {
-        onEachFeature: bindException,
+    var excLayer = L.geoJSON(exceptionZones, {
         style: {
             'color': '#FF4500'
         }
@@ -52,11 +77,11 @@ function load_map(specificationZones, exceptionZones) {
 
     var overlays = {
         '<span class="layername">Specifications</span>': specLayer,
-        '<span class="layername">Exceptions</span>': exceptLayer
+        '<span class="layername">Exceptions</span>': excLayer
     };
 
     // Add layers so that they're visible by default
-    exceptLayer.addTo(mymap);
+    excLayer.addTo(mymap);
     specLayer.addTo(mymap);
     L.control.layers(null, overlays, {collapsed: false, position: 'topleft'}).addTo(mymap);
-};
+}
