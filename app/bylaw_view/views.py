@@ -3,16 +3,16 @@ import json
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 
-def bylaw_from_id(zone_type, bylaw_id):
-    with open(f'static/bylaws/{zone_type}/{bylaw_id}.json') as f:
+
+def bylaw_from_id(zone_type, area, bylaw_id):
+    with open(f'static/bylaws/{zone_type}/{area}/{bylaw_id}.json') as f:
         return json.load(f)
 
 
-def specifications(request, code):
-    # parse code
+def specifications(request, area, code):
     category, *bylaw_ids = code.split('-')
 
-    bylaws = [bylaw_from_id('specifications', bylaw_id) for bylaw_id in bylaw_ids]
+    bylaws = [bylaw_from_id('specifications', area, bylaw_id) for bylaw_id in bylaw_ids]
 
     template = loader.get_template('bylaw_view/specifications.html')
     context = {
@@ -23,10 +23,10 @@ def specifications(request, code):
     return HttpResponse(template.render(context, request))
 
 
-def exceptions(request, code):
+def exceptions(request, area, code):
     bylaw_ids = code.split(',')
 
-    bylaws = [bylaw_from_id('exceptions', bylaw_id) for bylaw_id in bylaw_ids]
+    bylaws = [bylaw_from_id('exceptions', area, bylaw_id) for bylaw_id in bylaw_ids]
 
     template = loader.get_template('bylaw_view/exceptions.html')
     context = {

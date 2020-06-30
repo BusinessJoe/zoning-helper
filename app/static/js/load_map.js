@@ -8,6 +8,18 @@ $(document).ready(function() {
     });
 });
 
+
+function getRequest(zone_type, standard) {
+    $.get(
+        window.location.origin,
+        {zone_type: zone_type, standard: standard},
+        function(data) {
+            alert('page content: ' + data);
+        }
+    );
+}
+
+
 function load_map(specificationZones, exceptionZones) {
     var mymap = L.map('map').setView([43.725, -79.232], 17);
     var mapboxUrl = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}';
@@ -32,19 +44,21 @@ function load_map(specificationZones, exceptionZones) {
     }
 
     function getZonePopupHtml(e, layerType) {
+        console.log(e)
         if (layerType == 'spec') {
-            path = 'specifications';
+            zone_type = 'specification';
             layer = specLayer;
         }
         else if (layerType == 'exc') {
-            path = 'exceptions';
+            zone_type = 'exception';
             layer = excLayer;
         }
 
         var match = zoneFromPoint(e.latlng, layer);
         if (match.length != 0) {
+            var area = match[0].feature.geometry.area;
             var standard = match[0].feature.geometry.zone_spec;
-            var html = `<a href="/bylaw/${path}/${standard}" target="_blank">${standard}</a>`;
+            var html = `<a href="/bylaw/${zone_type}/${area}/${standard}" target="_blank">${standard}</a>`;
             return html;
         }
         return ''

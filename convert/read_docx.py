@@ -62,8 +62,9 @@ class Paragraph():
 
 
 class DocxBylawReader():
-    def __init__(self, filename):
+    def __init__(self, filename, area):
         self.doc = docx.Document(filename)
+        self.area = area
         self.paragraphs = [Paragraph(para) for para in self.doc.paragraphs]
 
     @property
@@ -71,22 +72,20 @@ class DocxBylawReader():
         all_text = '<br>\n'.join(para.richtext for para in self.paragraphs if not is_blank(para.richtext))
         return unidecode.unidecode(all_text)
 
-    def save_specifications(self, path):
-        for spec in parsedocx.parse_specifications(self.html_text):
-            filename = os.path.join(path, f"{spec['code']}.json")
-            with open(filename, 'w') as f:
-                json.dump(spec, f)
+    def save_bylaws(self, bylaw_type, path):
+        parse = {'spec': parsedocx.parse_specifications,
+                 'exc' : parsedocx.parse_exceptions}[bylaw_type]
 
-    def save_exceptions(self, path):
-        for exception in parsedocx.parse_exceptions(self.html_text):
-            filename = os.path.join(path, f"{exception['code']}.json")
+        os.makedirs(os.path.join(path, self.area), exist_ok=True)
+        for bylaw in parse(self.html_text):
+            bylaw['area'] = self.area
+            filename = os.path.join(path, self.area, f"{bylaw['code']}.json")
             with open(filename, 'w') as f:
-                json.dump(exception, f)
-
+                json.dump(bylaw, f)
 
 
 if __name__ == '__main__':
-    reader = DocxBylawReader('convert/CCREST.docx')
-    reader.save_specifications('app/static/bylaws/specifications')
-    reader.save_exceptions('app/static/bylaws/exceptions')
+    reader = DocxBylawReader('convert/CCREST.docx', 'cliffcrest')
+    reader.save_bylaws('spec', 'app/static/bylaws/specifications')
+    reader.save_bylaws('exc', 'app/static/bylaws/exceptions')
 

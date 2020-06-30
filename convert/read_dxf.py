@@ -19,12 +19,14 @@ def remove_json_files(path):
 
 
 class Region:
-    def __init__(self, points, text_segments=None):
+    def __init__(self, points, text_segments=None, area='no-area'):
         self._polygon = Polygon(points)
 
         if text_segments is None:
             text_segments = []
         self.text_segments = text_segments
+
+        self.area = area
 
     @property
     def text(self):
@@ -58,14 +60,16 @@ class Region:
 
         with open(filename, 'w') as json_file:
             data = {"zone_spec": self.text,
+                    "area": self.area,
                     "type": "Polygon",
                     "coordinates": coordinates}
             json.dump(data, json_file)
 
 
 class DxfReader:
-    def __init__(self, filename, spec_line_layer, spec_text_layer, exc_line_layer, exc_text_layer):
+    def __init__(self, filename, area, spec_line_layer, spec_text_layer, exc_line_layer, exc_text_layer):
         self.doc = ezdxf.readfile(filename)
+        self.area = area
 
         self.spec_regions = self._get_regions(spec_line_layer, spec_text_layer)
         self.exc_regions = self._get_regions(exc_line_layer, exc_text_layer)
@@ -85,7 +89,7 @@ class DxfReader:
         polylines = msp.query(f'LWPOLYLINE[layer=="{line_layer}"]')
         dxf_text = msp.query(f'TEXT[layer=="{text_layer}"]')
 
-        regions = [Region(points=line.vertices()) for line in polylines]
+        regions = [Region(points=line.vertices(), area=self.area) for line in polylines]
 
         for base in regions:
             for cutout in regions:
@@ -113,21 +117,17 @@ class DxfReader:
             interiors = [self._transform_points(i) for i in r.interiors]
             r.polygon = Polygon(exterior, interiors)
 
-    def save_specifications(self, path):
-        remove_json_files(path)
-        print(f'Saving {len(self.spec_regions)} spec regions.')
-        for idx, region in enumerate(self.spec_regions):
-            filename = os.path.join(path, f'{idx}.json')
-            region.save_as_geojson(filename)
+    def save_geojson(self, bylaw_type, path):
+        regions = {'spec': self.spec_regions,
+                  'exc' : self.exc_regions}[bylaw_type]
 
-    def save_exceptions(self, path):
         remove_json_files(path)
-        print(f'Saving {len(self.exc_regions)} exc regions.')
-        for idx, region in enumerate(self.exc_regions):
+        print(f'Saving {len(regions)} regions.')
+        for idx, region in enumerate(regions):
             filename = os.path.join(path, f'{idx}.json')
             region.save_as_geojson(filename)
 
 if __name__ == '__main__':
-    reader = DxfReader("convert/ccrest_marked.dxf", 'z_regions', 'z_standards', 'exc_regions', 'exc_standards')
-    reader.save_specifications('app/static/geojson/specifications')
-    reader.save_exceptions('app/static/geojson/exceptions')
+    reader = DxfReader("convert/ccrest_marked.dxf", 'cliffcrest', 'z_regions', 'z_standards', 'exc_regions', 'exc_standards')
+    reader.save_geojson('spec', 'app/static/geojson/specifications')
+    reader.save_geojson('exc', 'app/static/geojson/exceptions')
