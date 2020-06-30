@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('<slug:zone_type>/<slug:code>', views.bylaws, name='bylaws'),
+    path('specifications/<slug:code>', views.specifications, name='specifications'),
+    path('exceptions/<slug:code>', views.exceptions, name='exceptions'),
 ]
 
