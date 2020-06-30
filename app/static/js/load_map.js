@@ -54,12 +54,17 @@ function load_map(specificationZones, exceptionZones) {
         var specHtml = getZonePopupHtml(e, "spec");
         var excHtml = getZonePopupHtml(e, "exc");
 
-        var html = `<h3>Spec: ${specHtml}<br>Exc: ${excHtml}</h3>`;
+        if (specHtml !== '' || excHtml !== '') {        
+            var html = `<h3>Spec: ${specHtml}<br>Exc: ${excHtml}</h3>`;
 
-        popup
-            .setLatLng(e.latlng)
-            .setContent(html)
-            .openOn(mymap);
+            popup
+                .setLatLng(e.latlng)
+                .setContent(html)
+                .openOn(mymap);
+        }
+        else {
+            mymap.closePopup();
+        }
     }
 
     mymap.on('click', onMapClick);
@@ -83,5 +88,5 @@ function load_map(specificationZones, exceptionZones) {
     // Add layers so that they're visible by default
     excLayer.addTo(mymap);
     specLayer.addTo(mymap);
-    L.control.layers(null, overlays, {collapsed: false, position: 'topleft'}).addTo(mymap);
+    //L.control.layers(null, overlays, {collapsed: false, position: 'topleft'}).addTo(mymap);
 }
