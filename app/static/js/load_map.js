@@ -102,5 +102,5 @@ function load_map(specificationZones, exceptionZones) {
     // Add layers so that they're visible by default
     excLayer.addTo(mymap);
     specLayer.addTo(mymap);
-    //L.control.layers(null, overlays, {collapsed: false, position: 'topleft'}).addTo(mymap);
+    L.control.layers(null, overlays, {collapsed: false, position: 'topleft'}).addTo(mymap);
 }
