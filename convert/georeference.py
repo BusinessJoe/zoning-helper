@@ -1,6 +1,4 @@
-import os
 import numpy as np
-import sys
 
 
 def add_column(array, val=1):
@@ -36,7 +34,8 @@ def from_unit_square(bottom_left, top_left, bottom_right):
     return A
 
 
-def solve_affine(source_coords, dest_coords, angle=0):
+def solve_affine(source_coords, dest_coords):
+    """Creates an affine transformation from source_coords to dest_coords"""
     D = from_unit_square(*source_coords)
     M = from_unit_square(*dest_coords)
 

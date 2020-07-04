@@ -1,17 +1,16 @@
 import os
 import json
 import docx
-import pyparsing
 import unidecode
 
-import parsedocx
+import convert.parsedocx as parsedocx
 
 
 def is_blank(string):
     return string.isspace() or len(string) == 0
 
 
-class Paragraph():
+class Paragraph:
     richtext_format = {
         'bold': '<b>{text}</b>',
         'underline': '<u>{text}</u>',
@@ -61,7 +60,8 @@ class Paragraph():
         return is_bold and is_underline and is_uppercase
 
 
-class DocxBylawReader():
+class DocxBylawReader:
+    """Reads bylaw specifications and exceptions from docx files"""
     def __init__(self, filename, area):
         self.doc = docx.Document(filename)
         self.area = area

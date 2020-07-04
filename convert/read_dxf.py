@@ -6,7 +6,7 @@ import numpy as np
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
-from georeference import transform_from_csv, add_column
+from convert.georeference import transform_from_csv, add_column
 
 
 def remove_json_files(path):
@@ -19,14 +19,19 @@ def remove_json_files(path):
 
 
 class Region:
-    def __init__(self, points, text_segments=None, area='no-area'):
+    """Represents a single zone on the map
+
+    The points representing the border of the zone are stored with a
+    Polygon which allows holes to be present in the zone.
+    """
+    def __init__(self, points, text_segments=None, parent_area=''):
         self._polygon = Polygon(points)
 
         if text_segments is None:
             text_segments = []
         self.text_segments = text_segments
 
-        self.area = area
+        self.parent_area = parent_area
 
     @property
     def text(self):
@@ -52,7 +57,9 @@ class Region:
         self._polygon = polygon
 
     def save_as_geojson(self, filename):
-        # reverse along coordinate axis because geojson uses longitude-latitude ordering
+        """Saves a geojson Polygon object to the specified file"""
+
+        # reverse points along coordinate axis because geojson uses longitude-latitude ordering
         exterior = [(p[1], p[0]) for p in self.exterior]
         interiors = [[(p[1], p[0]) for p in i] for i in self.interiors]
 
@@ -60,10 +67,14 @@ class Region:
 
         with open(filename, 'w') as json_file:
             data = {"zone_spec": self.text,
-                    "area": self.area,
+                    "area": self.parent_area,
                     "type": "Polygon",
                     "coordinates": coordinates}
             json.dump(data, json_file)
+
+
+def _perforate(base, cutout):
+    return Polygon(base.exterior, list(base.interiors) + [cutout.exterior])
 
 
 class DxfReader:
@@ -81,20 +92,23 @@ class DxfReader:
         self._transform_regions(self.spec_regions)
         self._transform_regions(self.exc_regions)
 
-    def _perforate(self, base, cutout):
-        return Polygon(base.exterior, list(base.interiors) + [cutout.exterior])
-
     def _get_regions(self, line_layer, text_layer):
         msp = self.doc.modelspace()
         polylines = msp.query(f'LWPOLYLINE[layer=="{line_layer}"]')
         dxf_text = msp.query(f'TEXT[layer=="{text_layer}"]')
 
-        regions = [Region(points=line.vertices(), area=self.area) for line in polylines]
+        print(len(polylines))
+        regions = [Region(points=line.vertices(), parent_area=self.area) for line in polylines if line.closed]
+        print(len(regions))
+
+        regions = [r for r in regions if r.polygon.is_valid]
+        print(len(regions))
 
         for base in regions:
             for cutout in regions:
+                # if base.polygon.is_valid and cutout.polygon.is_valid:
                 if base is not cutout and base.polygon.contains(cutout.polygon):
-                    polygon = self._perforate(base.polygon, cutout.polygon)
+                    polygon = _perforate(base.polygon, cutout.polygon)
                     base.polygon = polygon
 
         for region in regions:
@@ -118,8 +132,13 @@ class DxfReader:
             r.polygon = Polygon(exterior, interiors)
 
     def save_geojson(self, bylaw_type, path):
+        """Save all regions as geojson using their save_as_geojson method"""
         regions = {'spec': self.spec_regions,
-                  'exc' : self.exc_regions}[bylaw_type]
+                   'exc': self.exc_regions}[bylaw_type]
+
+        # for r in regions:
+        #    if r.text == '':
+        #        print(r)
 
         remove_json_files(path)
         print(f'Saving {len(regions)} regions.')
@@ -127,7 +146,9 @@ class DxfReader:
             filename = os.path.join(path, f'{idx}.json')
             region.save_as_geojson(filename)
 
+
 if __name__ == '__main__':
-    reader = DxfReader("convert/ccrest_marked.dxf", 'cliffcrest', 'z_regions', 'z_standards', 'exc_regions', 'exc_standards')
+    reader = DxfReader("convert/ccrest_marked.dxf", 'cliffcrest', 'z_regions', 'z_standards', 'exc_regions',
+                       'exc_standards')
     reader.save_geojson('spec', 'app/static/geojson/specifications')
     reader.save_geojson('exc', 'app/static/geojson/exceptions')

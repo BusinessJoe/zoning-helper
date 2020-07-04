@@ -1,7 +1,7 @@
 from pyparsing import *
 
 
-def _specificationsParser():
+def _specifications_parser():
     html_breaks = Suppress(OneOrMore('<br>'))
 
     context_start = Suppress(Literal('<u>') & Literal('<b>'))
@@ -21,7 +21,7 @@ def _specificationsParser():
     return parser
 
 
-def _exceptionsParser():
+def _exceptions_parser():
     html_breaks = Suppress(ZeroOrMore('<br>'))
 
     exceptionHeader = Suppress(Literal('<u>') & Literal('<b>')) + "EXCEPTIONS" + Suppress(Literal('</u>') & Literal('</b>'))
@@ -38,9 +38,7 @@ def _exceptionsParser():
 
 
 def _value_of_code(code):
-    """
-    Returns a float representation of the code which ensures that codes like '21' are less that '21A'
-    """
+    """Returns a float representation of the code fpr use in ordering"""
     if code[-1].isalpha():
         integer = int(code[:-1])
 
@@ -54,10 +52,18 @@ def _value_of_code(code):
 
 
 def parse_specifications(html_text):
+    """Returns a list of all specifications represented as dicts
+
+    Each dict contains the following elements:
+        - context: The header that gives context to the scope of the specification
+            Examples: "FRONT YARD", "BUILDING SETBACK FROM LOT LINES"
+        - code: An alphanumeric value tied to each specification
+        - text: The main text of the specification
+    """
     with open('convert/test.txt', 'w') as f:
         f.write(html_text)
 
-    parser = _specificationsParser()
+    parser = _specifications_parser()
     parsed_specs = parser.searchString(html_text)
 
     specs = []
@@ -72,10 +78,14 @@ def parse_specifications(html_text):
     return specs
 
 
-
-
 def parse_exceptions(html_text):
-    parser = _exceptionsParser()
+    """Returns a list of all exceptions represented as dicts
+
+        Each dict contains the following elements:
+            - code: An alphanumeric value tied to each exception
+            - text: The main text of the exception
+    """
+    parser = _exceptions_parser()
     exceptions = parser.searchString(html_text)
 
     exceptions_to_keep = []
@@ -103,14 +113,8 @@ def parse_exceptions(html_text):
 
 
 if __name__ == '__main__':
-    from read_docx import DocxBylawReader
+    from convert.read_docx import DocxBylawReader
     reader = DocxBylawReader('convert/CCREST.docx')
     results = parse_specifications(reader.html_text)
-
-    
-    #with open('convert/test.txt', 'w') as f:
-    #    for e in results:
-    #        f.write(f'[{e[0]}]\n')
-    #        f.write(e[1] + '\n')
 
 
