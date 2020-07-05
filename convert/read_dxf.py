@@ -6,7 +6,8 @@ import numpy as np
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
-from convert.georeference import transform_from_csv, add_column
+from .georeference import transform_from_csv, add_column
+from .utils import show_polygon
 
 
 def remove_json_files(path):
@@ -82,12 +83,12 @@ class DxfReader:
         self.doc = ezdxf.readfile(filename)
         self.area = area
 
-        self.spec_regions = self._get_regions(spec_line_layer, spec_text_layer)
-        self.exc_regions = self._get_regions(exc_line_layer, exc_text_layer)
-
         pre, ext = os.path.splitext(filename)
         csv_path = pre + '.csv'
         self.georef_transform = transform_from_csv(csv_path)
+
+        self.spec_regions = self._get_regions(spec_line_layer, spec_text_layer)
+        self.exc_regions = self._get_regions(exc_line_layer, exc_text_layer)
 
         self._transform_regions(self.spec_regions)
         self._transform_regions(self.exc_regions)
@@ -97,12 +98,14 @@ class DxfReader:
         polylines = msp.query(f'LWPOLYLINE[layer=="{line_layer}"]')
         dxf_text = msp.query(f'TEXT[layer=="{text_layer}"]')
 
-        print(len(polylines))
-        regions = [Region(points=line.vertices(), parent_area=self.area) for line in polylines if line.closed]
-        print(len(regions))
+        regions = [Region(points=line.vertices(), parent_area=self.area) for line in polylines if len(line) >= 3]
 
-        regions = [r for r in regions if r.polygon.is_valid]
-        print(len(regions))
+        for r in regions:
+            poly = r.polygon
+            if not poly.is_valid:
+                show_polygon(poly)
+
+        #regions = [r for r in regions if r.polygon.is_valid]
 
         for base in regions:
             for cutout in regions:
@@ -117,7 +120,6 @@ class DxfReader:
                 point = Point(text.dxf.insert[:2])
                 if region.polygon.contains(point):
                     region.add_text(text)
-
         return regions
 
     def _transform_points(self, points):
@@ -147,8 +149,3 @@ class DxfReader:
             region.save_as_geojson(filename)
 
 
-if __name__ == '__main__':
-    reader = DxfReader("convert/ccrest_marked.dxf", 'cliffcrest', 'z_regions', 'z_standards', 'exc_regions',
-                       'exc_standards')
-    reader.save_geojson('spec', 'app/static/geojson/specifications')
-    reader.save_geojson('exc', 'app/static/geojson/exceptions')

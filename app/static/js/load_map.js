@@ -83,9 +83,11 @@ function load_map(specificationZones, exceptionZones) {
 
     mymap.on('click', onMapClick);
 
+    function addPopup(feature, layer) {
+        layer.bindTooltip(feature.zone_spec, {permanent: true});
+    }
 
     var specLayer = L.geoJSON(specificationZones, {
-    
     });
 
     var excLayer = L.geoJSON(exceptionZones, {
@@ -93,6 +95,8 @@ function load_map(specificationZones, exceptionZones) {
             'color': '#FF4500'
         }
     });
+
+
 
     var overlays = {
         '<span class="layername">Specifications</span>': specLayer,
