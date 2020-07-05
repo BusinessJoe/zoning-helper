@@ -36,7 +36,7 @@ class Region:
 
     @property
     def text(self):
-        return ''.join(text.dxf.text for text in self.text_segments)
+        return '\u200b'.join(text.dxf.text for text in self.text_segments)
 
     def add_text(self, dxf_text):
         self.text_segments.append(dxf_text)
