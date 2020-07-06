@@ -1,6 +1,7 @@
 import os
 import json
 import glob
+import re
 import ezdxf
 import numpy as np
 from shapely.geometry import Point
@@ -42,6 +43,12 @@ class Region:
         self.text_segments.append(dxf_text)
 
     @property
+    def codes(self):
+        p = re.compile(r'(?<!Part\s)\d+[A-Z]?')
+        codes = re.findall(p, self.text)
+        return codes
+
+    @property
     def exterior(self):
         return list(self._polygon.exterior.coords)
 
@@ -57,7 +64,7 @@ class Region:
     def polygon(self, polygon):
         self._polygon = polygon
 
-    def save_as_geojson(self, filename):
+    def save_as_geojson(self, filename, zone_id):
         """Saves a geojson Polygon object to the specified file"""
 
         # reverse points along coordinate axis because geojson uses longitude-latitude ordering
@@ -68,9 +75,12 @@ class Region:
 
         with open(filename, 'w') as json_file:
             data = {"zone_spec": self.text,
+                    "codes": self.codes,
                     "area": self.parent_area,
                     "type": "Polygon",
-                    "coordinates": coordinates}
+                    "coordinates": coordinates,
+                    "zone_id": zone_id,
+            }
             json.dump(data, json_file)
 
 
@@ -103,9 +113,8 @@ class DxfReader:
         for r in regions:
             poly = r.polygon
             if not poly.is_valid:
-                show_polygon(poly)
-
-        #regions = [r for r in regions if r.polygon.is_valid]
+                print("Found an invalid polygon")
+                #show_polygon(poly)
 
         for base in regions:
             for cutout in regions:
@@ -120,6 +129,11 @@ class DxfReader:
                 point = Point(text.dxf.insert[:2])
                 if region.polygon.contains(point):
                     region.add_text(text)
+
+        for r in regions:
+            print(r.text)
+            print(r.codes)
+
         return regions
 
     def _transform_points(self, points):
@@ -146,6 +160,6 @@ class DxfReader:
         print(f'Saving {len(regions)} regions.')
         for idx, region in enumerate(regions):
             filename = os.path.join(path, f'{idx}.json')
-            region.save_as_geojson(filename)
+            region.save_as_geojson(filename, idx)
 
 

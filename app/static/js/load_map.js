@@ -8,17 +8,59 @@ $(document).ready(function() {
     });
 });
 
-
-function getRequest(zone_type, standard) {
-    $.get(
-        window.location.origin,
-        {zone_type: zone_type, standard: standard},
-        function(data) {
-            alert('page content: ' + data);
-        }
-    );
+// Adds a .curry method to functions
+function toArray(en) {
+    return Array.prototype.slice.call(en);
 }
 
+Function.prototype.curry = function() {
+    if (arguments.length<1) {
+        return this; //nothing to curry with - return function
+    }
+    var __method = this;
+    var args = toArray(arguments);
+    return function() {
+        return __method.apply(this, args.concat(toArray(arguments)));
+    }
+}
+
+function zoneFromPoint(point, layer) {
+    return leafletPip.pointInLayer(point, layer, true)
+}
+
+function getZonePopupHtml(e, layerType, layer) {
+    var match = zoneFromPoint(e.latlng, layer);
+
+
+    if (match.length != 0) {
+        var zone = match[0];
+        var area = zone.feature.geometry.area;
+        var standard = zone.feature.geometry.zone_spec;
+        var zone_id = zone.feature.geometry.zone_id;
+
+        var html = `<a href="/bylaw/${layerType}/${area}/${zone_id}" target="_blank">${standard}</a>`;
+        return html;
+    }
+    return ''
+}
+
+function onMapClick(map, specLayer, excLayer, e) {
+    var specHtml = getZonePopupHtml(e, "specifications", specLayer);
+    var excHtml = getZonePopupHtml(e, "exceptions", excLayer);
+
+    if (specHtml !== '' || excHtml !== '') {        
+        var html = `<h3>Spec: ${specHtml}<br>Exc: ${excHtml}</h3>`;
+
+        var popup = L.popup();
+        popup
+            .setLatLng(e.latlng)
+            .setContent(html)
+            .openOn(map);
+    }
+    else {
+        map.closePopup();
+    }
+}
 
 function load_map(specificationZones, exceptionZones) {
     var mymap = L.map('map').setView([43.725, -79.232], 17);
@@ -37,55 +79,6 @@ function load_map(specificationZones, exceptionZones) {
         accessToken: 'pk.eyJ1IjoiYnVzaW5lc3Nqb2UiLCJhIjoiY2tiMmFoeHc2MGMxcDJxcjFrNDVveHczYiJ9.quq-o1ig6VHAEPPzLbjkJQ'
     }).addTo(mymap);
 
-    var popup = L.popup();
-
-    function zoneFromPoint(point, layer) {
-        return leafletPip.pointInLayer(point, layer, true)
-    }
-
-    function getZonePopupHtml(e, layerType) {
-        console.log(e)
-        if (layerType == 'spec') {
-            zone_type = 'specification';
-            layer = specLayer;
-        }
-        else if (layerType == 'exc') {
-            zone_type = 'exception';
-            layer = excLayer;
-        }
-
-        var match = zoneFromPoint(e.latlng, layer);
-        if (match.length != 0) {
-            var area = match[0].feature.geometry.area;
-            var standard = match[0].feature.geometry.zone_spec;
-            var html = `<a href="/bylaw/${zone_type}/${area}/${standard}" target="_blank">${standard}</a>`;
-            return html;
-        }
-        return ''
-    }
-
-    function onMapClick(e) {
-        var specHtml = getZonePopupHtml(e, "spec");
-        var excHtml = getZonePopupHtml(e, "exc");
-
-        if (specHtml !== '' || excHtml !== '') {        
-            var html = `<h3>Spec: ${specHtml}<br>Exc: ${excHtml}</h3>`;
-
-            popup
-                .setLatLng(e.latlng)
-                .setContent(html)
-                .openOn(mymap);
-        }
-        else {
-            mymap.closePopup();
-        }
-    }
-
-    mymap.on('click', onMapClick);
-
-    function addPopup(feature, layer) {
-        layer.bindTooltip(feature.zone_spec, {permanent: true});
-    }
 
     var specLayer = L.geoJSON(specificationZones, {
     });
@@ -96,7 +89,7 @@ function load_map(specificationZones, exceptionZones) {
         }
     });
 
-
+    mymap.on('click', onMapClick.curry(mymap, specLayer, excLayer));
 
     var overlays = {
         '<span class="layername">Specifications</span>': specLayer,
