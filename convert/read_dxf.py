@@ -37,7 +37,14 @@ class Region:
 
     @property
     def text(self):
-        return '\u200b'.join(text.dxf.text for text in self.text_segments)
+        """Return text ordered by height along an axis defined by the text's rotation"""
+        # create rotation matrix to align text
+        angle = self.text_segments[0].dxf.rotation
+        c, s = np.cos(angle), np.sin(angle)
+        rot = np.array([[c, s], [-s, c]])
+
+        self.text_segments.sort(key=lambda t: rot.dot(t.dxf.insert[:2])[1], reverse=True)
+        return ' '.join(text.dxf.text for text in self.text_segments)
 
     def add_text(self, dxf_text):
         self.text_segments.append(dxf_text)
@@ -116,6 +123,7 @@ class DxfReader:
                 print("Found an invalid polygon")
                 #show_polygon(poly)
 
+        # cut out nested regions
         for base in regions:
             for cutout in regions:
                 # if base.polygon.is_valid and cutout.polygon.is_valid:
@@ -123,6 +131,7 @@ class DxfReader:
                     polygon = _perforate(base.polygon, cutout.polygon)
                     base.polygon = polygon
 
+        # add text to regions
         for region in regions:
             for text in dxf_text:
                 # text.dxf.insert is the bottom left point of a text object
@@ -130,8 +139,11 @@ class DxfReader:
                 if region.polygon.contains(point):
                     region.add_text(text)
 
+        # filter out regions without text
+        regions = [r for r in regions if len(r.text_segments)]
+
         for r in regions:
-            print(r.text)
+            print(r.text, r.text_segments[0].dxf.rotation)
             print(r.codes)
 
         return regions
