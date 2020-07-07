@@ -1,7 +1,7 @@
 from unittest import TestCase
 import numpy as np
 
-from .. import compile_dxf
+from .. import georeference
 
 np.random.seed(27042002)
 
@@ -17,7 +17,7 @@ class TestMapTransform(TestCase):
         top_left = bottom_left + y_vector
         top_right = bottom_left + x_vector + y_vector
 
-        A = compile_dxf.from_unit_square(bottom_left, top_left, bottom_right)
+        A = georeference.from_unit_square(bottom_left, top_left, bottom_right)
 
         expected = np.vstack((bottom_left, bottom_right, top_left, top_right))
         results = self.unitsquare.dot(A.T)[:, :2]
