@@ -140,11 +140,10 @@ class DxfReader:
                     region.add_text(text)
 
         # filter out regions without text
-        regions = [r for r in regions if len(r.text_segments)]
-
         for r in regions:
-            print(r.text, r.text_segments[0].dxf.rotation)
-            print(r.codes)
+            if not len(r.text_segments):
+                print("A region has no text")
+        regions = [r for r in regions if len(r.text_segments)]
 
         return regions
 
