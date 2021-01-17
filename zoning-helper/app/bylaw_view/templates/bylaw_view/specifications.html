@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bylaws</title>
+
+<style>
+
+    body {
+        font-family: Helvetica, Arial, sans-serif;
+    }
+
+    sup {
+        vertical-align: top;
+        font-size: 0.7em;
+    }
+
+    .standard {
+        font-size: 2.0em;
+    }
+
+    .bylaw {
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+        border-top: 2px solid black;
+    }
+
+    .context {
+        font-size: 1.5em;
+    }
+
+    .code {
+        padding-top: 0.3em;
+        font-size: 2.0em;
+        width: 2.5em;
+        flex: none;
+        /*
+        margin: 0% 0% 0% 10%;
+        */
+    }
+
+    .body {
+        padding-top: 0.3em;
+        font-size: 2.0em;
+        /*padding: 0px 10px 10px 10px;
+        margin: 0% 10% 0% 0%
+        */
+    }
+
+</style>
+</head>
+<body>
+
+    <div class="standard">Specification: {{ standard }}</div>
+
+    {% for bylaw in bylaws %}
+    <div class="bylaw">
+        <div class="context">{{ bylaw.context }}</div>
+        <div style="display: flex;">
+            <div class="code">{{ bylaw.code }}.</div>
+            <div class="body">{{ bylaw.text | safe }} </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</body>
