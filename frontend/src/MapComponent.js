@@ -4,8 +4,11 @@ axios.defaults.baseURL = 'http://localhost:8000';
 
 export default class MapComponent extends Component {
   get_geojson(area) {
-    var data = axios.get(`dxf/geojson/${area}/`);
-    console.log(data);
+    console.log('getting');
+    axios.get(`dxf/geojson/${area}/`)
+    .then(response => {
+      console.log(response);
+    });
   }
 
   render() {

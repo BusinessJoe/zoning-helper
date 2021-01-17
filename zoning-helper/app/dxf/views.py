@@ -1,9 +1,10 @@
 from django.http import JsonResponse
 from .models import BylawSpecification, BylawException, GeoJson
 from .serializers import SpecificationSerializer, ExceptionSerializer, GeoJsonSerializer
+from django.views.decorators.csrf import csrf_exempt
 
 
-# Create your views here.
+@csrf_exempt
 def bylaw_specification(request, area, code):
     if request.method == 'GET':
         spec = BylawSpecification.objects.filter(area=area, code=code)[0]
@@ -11,6 +12,7 @@ def bylaw_specification(request, area, code):
         return JsonResponse(serializer.data)
 
 
+@csrf_exempt
 def bylaw_exception(request, area, code):
     if request.method == 'GET':
         spec = BylawException.objects.filter(area=area, code=code)[0]
@@ -18,6 +20,7 @@ def bylaw_exception(request, area, code):
         return JsonResponse(serializer.data)
 
 
+@csrf_exempt
 def geojson(request, area):
     if request.method == 'GET':
         geojsons = GeoJson.objects.filter(data__area=area)
