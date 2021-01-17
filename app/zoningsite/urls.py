@@ -20,6 +20,7 @@ from django.http import HttpResponseRedirect
 urlpatterns = [
     path('', lambda r: HttpResponseRedirect('map/')),
     path('map/', include('map.urls')),
+    path('dxf/', include('dxf.urls')),
     path('bylaw/', include('bylaw_view.urls')),
     path('admin/', admin.site.urls),
 ]
