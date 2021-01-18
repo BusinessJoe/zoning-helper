@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
-import ReactMapboxGl, { Layer, Feature, GeoJSONLayer, Popup } from 'react-mapbox-gl';
+import ReactMapboxGl, { GeoJSONLayer } from 'react-mapbox-gl';
 import axios from 'axios';
+import MapPopup from './MapPopup.js';
 axios.defaults.baseURL = 'http://localhost:8000';
 
 const Map = ReactMapboxGl({
@@ -12,23 +13,16 @@ export default class MapComponent extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      popup: {
-        show: false,
-        coordinates: [-79.232, 43.725],
-        text: null
-      },
-      geojson: null
-    };
+    this.popup = React.createRef();
+    this.state = {};
   }
 
   get_geojson(area) {
-    console.log('getting');
     axios.get(`dxf/geojson/${area}/`)
     .then(response => {
-      let features = [];
-      response.data.forEach((feat) => {
-        features.push(feat);
+      let features = response.data.map(f => {
+        f.properties.codes = f.properties.codes.join();
+        return f
       });
 
       this.setState({
@@ -73,37 +67,21 @@ export default class MapComponent extends Component {
           data={this.state.spec_geojson}
           fillPaint={specPolygonPaint}
           fillOnClick={(e) => {
-            let new_popup = {...this.state.popup};
-            new_popup.show = true;
-            new_popup.coordinates = [e.lngLat.lng, e.lngLat.lat];
-            new_popup.text = e.features[0].properties.codes;
-            console.log(e.features[0].properties.area);
-
-            this.setState({
-              popup: new_popup
-            });
+            this.popup.current.show();
+            this.popup.current.setCoordinates([e.lngLat.lng, e.lngLat.lat]);
+            this.popup.current.setSpecs(e.features.flatMap(f => f.properties.codes));
           }}
         />
         <GeoJSONLayer
           data={this.state.exc_geojson}
           fillPaint={excPolygonPaint}
           fillOnClick={(e) => {
-            let new_popup = {...this.state.popup};
-            new_popup.show = true;
-            new_popup.coordinates = [e.lngLat.lng, e.lngLat.lat];
-            new_popup.text = e.features[0].properties.codes;
-            console.log(e.features[0].properties.area);
-
-            this.setState({
-              popup: new_popup
-            });
+            this.popup.current.show();
+            this.popup.current.setCoordinates([e.lngLat.lng, e.lngLat.lat]);
+            this.popup.current.setExcs(e.features.flatMap(f => f.properties.codes));
           }}
         />
-        {this.state.popup.show && <Popup
-          coordinates={this.state.popup.coordinates}
-        >
-          <div>{this.state.popup.text}</div>
-        </Popup>}
+        <MapPopup ref={this.popup}/>
       </Map>
     );
   }
