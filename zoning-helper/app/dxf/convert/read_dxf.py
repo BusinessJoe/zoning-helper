@@ -72,7 +72,7 @@ class Region:
     def polygon(self, polygon):
         self._polygon = polygon
 
-    def save_as_geojson(self, zone_id):
+    def save_as_geojson(self, zone_id, bylaw_type):
         """Saves a geojson Polygon object to the specified file"""
 
         # reverse points along coordinate axis because geojson uses longitude-latitude ordering
@@ -90,6 +90,7 @@ class Region:
             "codes": self.codes,
             "area": self.parent_area,
             "zone_id": zone_id,
+            "bylaw_type": bylaw_type,
         }
         geojson = GeoJsonFeature(type='Feature', geometry=geometry, properties=properties)
         geojson.save()
@@ -175,4 +176,4 @@ class DxfReader:
 
         print(f'Saving {len(regions)} regions.')
         for idx, region in enumerate(regions):
-            region.save_as_geojson(idx)
+            region.save_as_geojson(idx, bylaw_type)

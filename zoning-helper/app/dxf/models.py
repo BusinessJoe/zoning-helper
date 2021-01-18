@@ -8,11 +8,17 @@ class BylawSpecification(models.Model):
     code = models.CharField(max_length=10)
     text = models.TextField()
 
+    def __str__(self):
+        return self.code
+
 
 class BylawException(models.Model):
     area = models.CharField(max_length=128)
     code = models.CharField(max_length=10)
     text = models.TextField()
+
+    def __str__(self):
+        return self.code
 
 
 class GeoJsonFeature(models.Model):
