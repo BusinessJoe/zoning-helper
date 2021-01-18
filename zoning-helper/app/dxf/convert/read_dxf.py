@@ -81,6 +81,10 @@ class Region:
 
         coordinates = [exterior] + interiors
 
+        # round coordinates to 7 decimal places
+        # this still has a precision of ~1 cm
+        coordinates = [[(round(p[0], 7), round(p[1], 7)) for p in coordinates[0]]]
+
         geometry = {
             "type": "Polygon",
             "coordinates": coordinates,
