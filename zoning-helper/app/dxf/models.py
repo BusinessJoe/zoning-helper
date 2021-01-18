@@ -15,5 +15,10 @@ class BylawException(models.Model):
     text = models.TextField()
 
 
-class GeoJson(models.Model):
-    data = models.JSONField()
+class GeoJsonFeature(models.Model):
+    type = models.CharField(max_length=30)
+    geometry = models.JSONField()
+    properties = models.JSONField()
+
+    def __str__(self):
+        return str(self.properties['codes'])

@@ -1,4 +1,4 @@
-from .models import BylawSpecification, BylawException, GeoJson
+from .models import BylawSpecification, BylawException, GeoJsonFeature
 from rest_framework import serializers
 
 
@@ -16,5 +16,5 @@ class ExceptionSerializer(serializers.HyperlinkedModelSerializer):
 
 class GeoJsonSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = GeoJson
-        fields = ['data']
+        model = GeoJsonFeature
+        fields = ['type', 'geometry', 'properties']

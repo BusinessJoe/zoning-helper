@@ -4,8 +4,14 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+import 'mapbox-gl/dist/mapbox-gl.css';
+
 ReactDOM.render(
   <React.StrictMode>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v1.10.1/mapbox-gl.css"
+      rel="stylesheet"
+    />
     <App />
   </React.StrictMode>,
   document.getElementById('root')

@@ -8,7 +8,7 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
 from .georeference import transform_from_csv, add_column
-from ..models import GeoJson
+from ..models import GeoJsonFeature
 
 
 def remove_json_files(path):
@@ -81,15 +81,17 @@ class Region:
 
         coordinates = [exterior] + interiors
 
-        data = {
+        geometry = {
+            "type": "Polygon",
+            "coordinates": coordinates,
+        }
+        properties = {
             "zone_spec": self.text,
             "codes": self.codes,
             "area": self.parent_area,
-            "type": "Polygon",
-            "coordinates": coordinates,
             "zone_id": zone_id,
         }
-        geojson = GeoJson(data=data)
+        geojson = GeoJsonFeature(type='Feature', geometry=geometry, properties=properties)
         geojson.save()
 
 
