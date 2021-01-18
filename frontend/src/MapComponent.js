@@ -32,9 +32,13 @@ export default class MapComponent extends Component {
       });
 
       this.setState({
-        geojson: {
+        spec_geojson: {
           type: 'FeatureCollection',
-          features: features
+          features: features.filter(f => f.properties.bylaw_type === 'spec')
+        },
+        exc_geojson: {
+          type: 'FeatureCollection',
+          features: features.filter(f => f.properties.bylaw_type === 'exc')
         }
       });
     });
@@ -45,7 +49,11 @@ export default class MapComponent extends Component {
   }
 
   render() {
-    let polygonPaint = ReactMapboxGl.FillPaint = {
+    let specPolygonPaint = ReactMapboxGl.FillPaint = {
+      'fill-color': "#0000ff",
+      'fill-opacity': 0.3
+    }
+    let excPolygonPaint = ReactMapboxGl.FillPaint = {
       'fill-color': "#ff0000",
       'fill-opacity': 0.3
     }
@@ -62,8 +70,23 @@ export default class MapComponent extends Component {
         zoom={[13]}
       >
         <GeoJSONLayer
-          data={this.state.geojson}
-          fillPaint={polygonPaint}
+          data={this.state.spec_geojson}
+          fillPaint={specPolygonPaint}
+          fillOnClick={(e) => {
+            let new_popup = {...this.state.popup};
+            new_popup.show = true;
+            new_popup.coordinates = [e.lngLat.lng, e.lngLat.lat];
+            new_popup.text = e.features[0].properties.codes;
+            console.log(e.features[0].properties.area);
+
+            this.setState({
+              popup: new_popup
+            });
+          }}
+        />
+        <GeoJSONLayer
+          data={this.state.exc_geojson}
+          fillPaint={excPolygonPaint}
           fillOnClick={(e) => {
             let new_popup = {...this.state.popup};
             new_popup.show = true;
