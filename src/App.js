@@ -7,6 +7,7 @@ import mapboxgl from 'mapbox-gl';
 // eslint-disable-next-line import/no-webpack-loader-syntax
 mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
 
+// https://farhanghazi17.medium.com/configuring-react-router-with-django-urls-ba3d918e8c10
 function App() {
   return (
     <Router basename="/static">
