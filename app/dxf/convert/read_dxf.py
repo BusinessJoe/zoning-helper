@@ -145,7 +145,6 @@ class DxfReader:
             for text in dxf_text:
                 # text.dxf.insert is the bottom left point of a text object
                 # tuple conversion is required as the insert object doesn't allow slice indexing
-                print(tuple(text.dxf.insert)[:2])
                 point = Point(tuple(text.dxf.insert)[:2])
                 if region.polygon.contains(point):
                     region.add_text(text)
