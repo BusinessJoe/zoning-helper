@@ -23,3 +23,27 @@ yarn-debug.log*
 yarn-error.log*
 
 .eslintcache
+
+# from backend
+__pycache__/
+
+*.pdf
+*.psd
+*.png
+*.tif
+*.jpg
+*.xcf
+*.tfw
+*.sh
+
+.~lock.*
+.*.swp
+
+!zoningsite/static/**
+app/static/bylaws/
+app/static/geojson/
+
+logs/
+info/
+venv/
+js_libs/

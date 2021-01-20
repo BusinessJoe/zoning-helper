@@ -16,12 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from django.http import HttpResponseRedirect
+from django.views.generic import TemplateView
+from django.views.decorators.cache import never_cache
 
 urlpatterns = [
-    path('', lambda r: HttpResponseRedirect('map/')),
-    path('map/', include('map.urls')),
+    path('', never_cache(TemplateView.as_view(template_name='index.html')), name='index'),
     path('dxf/', include('dxf.urls')),
-    path('bylaw/', include('bylaw_view.urls')),
     path('admin/', admin.site.urls),
 ]
 

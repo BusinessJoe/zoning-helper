@@ -26,9 +26,9 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'opx*o!!xv9%*xr2#cnfaf60$_1&5lh
 
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG = True
-DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
+DEBUG = os.environ.get('DJANGO_DEBUG', '') == 'True'
 
-ALLOWED_HOSTS = ['zoning-helper.herokuapp.com', '127.0.0.1:8000']
+ALLOWED_HOSTS = ['zoning-helper.herokuapp.com', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -81,9 +81,19 @@ WSGI_APPLICATION = 'zoningsite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config()
-}
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'zoningdb',
+            'USER': 'zoninguser',
+            'PASSWORD': 'zoningpass',
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config()
+    }
 
 
 # Password validation
