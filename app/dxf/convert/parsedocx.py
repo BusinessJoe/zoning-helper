@@ -60,7 +60,7 @@ def parse_specifications(html_text):
         - code: An alphanumeric value tied to each specification
         - text: The main text of the specification
     """
-    with open('dxf/convert/test.txt', 'w') as f:
+    with open('app/dxf/convert/test.txt', 'w') as f:
         f.write(html_text)
 
     parser = _specifications_parser()
