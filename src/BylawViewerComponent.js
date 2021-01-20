@@ -5,8 +5,6 @@ import BylawSpecification from './BylawSpecification.js';
 import BylawException from './BylawException.js';
 import './Bylaw.css';
 
-axios.defaults.baseURL = 'http://localhost:8000';
-
 export default class BylawViewer extends Component {
   constructor(props) {
     super(props);

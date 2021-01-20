@@ -3,8 +3,6 @@ import ReactHtmlParser from 'react-html-parser';
 import axios from 'axios';
 import './Bylaw.css';
 
-axios.defaults.baseURL = 'http://localhost:8000';
-
 export default class BylawException extends Component {
   constructor(props) {
     super(props);
@@ -19,7 +17,7 @@ export default class BylawException extends Component {
   }
 
   get_specification() {
-    axios.get(`dxf/bylaw/spec/${this.props.area}/${this.props.code}/`)
+    axios.get(`/dxf/bylaw/spec/${this.props.area}/${this.props.code}/`)
     .then(({data}) => {
       this.setState({
         data: data

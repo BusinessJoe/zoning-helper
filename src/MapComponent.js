@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import ReactMapboxGl, { GeoJSONLayer } from 'react-mapbox-gl';
 import axios from 'axios';
 import MapPopup from './MapPopup.js';
-axios.defaults.baseURL = 'http://localhost:8000';
 
 const Map = ReactMapboxGl({
   accessToken:
@@ -18,7 +17,7 @@ export default class MapComponent extends Component {
   }
 
   get_geojson(area) {
-    axios.get(`dxf/geojson/${area}/`)
+    axios.get(`/dxf/geojson/${area}/`)
     .then(response => {
       let features = response.data.map(f => {
         f.properties.codes = f.properties.codes.join();
