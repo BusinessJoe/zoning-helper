@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import { Popup } from 'react-mapbox-gl';
+import { Link } from 'react-router-dom';
 
 export default class MapPopup extends Component {
   constructor(props) {
@@ -43,7 +44,7 @@ export default class MapPopup extends Component {
     let specQuery = `specifications=${this.state.specs}`;
     let excQuery = `exceptions=${this.state.excs}`;
     let fullQuery = [areaQuery, specQuery, excQuery].join('&')
-    return `/bylaws?${fullQuery}`;
+    return `bylaws?${fullQuery}`;
   }
 
   render() {
@@ -51,7 +52,7 @@ export default class MapPopup extends Component {
     return (
       <>
         {this.state.show && <Popup coordinates={this.state.coordinates}>
-          <a href={this.getPath()}>{text}</a>
+          <Link to={this.getPath()}>{text}</Link>
         </Popup>}
       </>
     )
